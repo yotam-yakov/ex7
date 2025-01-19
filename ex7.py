@@ -1,13 +1,13 @@
 import openpyxl  # We'll parse the xlsx with openpyxl
 
 # Global BST root
-ownerRoot = None
+owner_root = None
 
 ########################
-# 0) Read from XLSX -> HONEN_DATA
+# 0) Read from XLSX - HONEN_DATA
 ########################
 
-def readHonenXlsx(filename):
+def read_honen_xlsx(filename):
     """
     Reads 'Honen_Pokedex.xlsx' and returns a list of dicts:
       [ { "ID": int, "Name": str, "Type": str, "HP": int,
@@ -39,174 +39,181 @@ def readHonenXlsx(filename):
 
     return data_list
 
-# This actually loads the data from the file:
-HONEN_DATA = readHonenXlsx("Honen_Pokedex.xlsx")
+# Actually load from the file:
+HONEN_DATA = read_honen_xlsx("Honen_Pokedex.xlsx")
+
 
 ########################
 # 1) Helper Functions
 ########################
 
-def readIntSafe(prompt):
+def read_int_safe(prompt):
     """
     Prompt the user for an integer, re-prompting on invalid input.
     """
     pass
 
-def getPokeDictByID(ID):
+def get_poke_dict_by_id(poke_id):
     """
     Return a copy of the Pokemon dict from HONEN_DATA by ID, or None if not found.
     """
     pass
 
-def getPokeDictByName(name):
+def get_poke_dict_by_name(name):
     """
     Return a copy of the Pokemon dict from HONEN_DATA by name, or None if not found.
     """
     pass
 
-def displayPokemonList(pokeList):
+def display_pokemon_list(poke_list):
     """
     Display a list of Pokemon dicts, or a message if empty.
     """
     pass
 
+
 ########################
 # 2) BST (By Owner Name)
 ########################
 
-def createOwnerNode(ownerName, firstPokemon=None):
+def create_owner_node(owner_name, first_pokemon=None):
     """
     Create and return a BST node dict with keys: 'owner', 'pokedex', 'left', 'right'.
     """
     pass
 
-def insertOwnerBST(root, newNode):
+def insert_owner_bst(root, new_node):
     """
-    Insert a new BST node by ownerName (alphabetically). Return updated root.
-    """
-    pass
-
-def findOwnerBST(root, ownerName):
-    """
-    Locate a BST node by ownerName. Return that node or None if missing.
+    Insert a new BST node by owner_name (alphabetically). Return updated root.
     """
     pass
 
-def minNode(node):
+def find_owner_bst(root, owner_name):
+    """
+    Locate a BST node by owner_name. Return that node or None if missing.
+    """
+    pass
+
+def min_node(node):
     """
     Return the leftmost node in a BST subtree.
     """
     pass
 
-def deleteOwnerBST(root, ownerName):
+def delete_owner_bst(root, owner_name):
     """
-    Remove a node from the BST by ownerName. Return updated root.
+    Remove a node from the BST by owner_name. Return updated root.
     """
     pass
+
 
 ########################
 # 3) BST Traversals
 ########################
 
-def bfsTraversal(root):
+def bfs_traversal(root):
     """
     BFS level-order traversal. Print each owner's name and # of pokemons.
     """
     pass
 
-def preOrder(root):
+def pre_order(root):
     """
     Pre-order traversal (root -> left -> right). Print data for each node.
     """
     pass
 
-def inOrder(root):
+def in_order(root):
     """
     In-order traversal (left -> root -> right). Print data for each node.
     """
     pass
 
-def postOrder(root):
+def post_order(root):
     """
     Post-order traversal (left -> right -> root). Print data for each node.
     """
     pass
 
+
 ########################
 # 4) Pokedex Operations
 ########################
 
-def addPokemonToOwner(ownerNode):
+def add_pokemon_to_owner(owner_node):
     """
     Prompt user for a Pokemon ID, find the data, and add to this owner's pokedex if not duplicate.
     """
     pass
 
-def releasePokemonByName(ownerNode):
+def release_pokemon_by_name(owner_node):
     """
     Prompt user for a Pokemon name, remove it from this owner's pokedex if found.
     """
     pass
 
-def evolvePokemonByName(ownerNode):
+def evolve_pokemon_by_name(owner_node):
     """
     Evolve a Pokemon by name:
     1) Check if it can evolve
     2) Remove old
     3) Insert new
-    4) If new is a duplicate, remove immediately
+    4) If new is a duplicate, remove it immediately
     """
     pass
+
 
 ########################
 # 5) Sorting Owners by # of Pokemon
 ########################
 
-def gatherAllOwners(root, arr):
+def gather_all_owners(root, arr):
     """
     Collect all BST nodes into a list (arr).
     """
     pass
 
-def sortOwnersByNumPokemon():
+def sort_owners_by_num_pokemon():
     """
     Gather owners, sort them by (#pokedex size, then alpha), print results.
     """
     pass
 
+
 ########################
 # 6) Print All
 ########################
 
-def printAllOwners():
+def print_all_owners():
     """
     Let user pick BFS, Pre, In, or Post. Print each owner's data/pokedex accordingly.
     """
     pass
 
-def preOrderPrint(node):
+def pre_order_print(node):
     """
     Helper to print data in pre-order.
     """
     pass
 
-def inOrderPrint(node):
+def in_order_print(node):
     """
     Helper to print data in in-order.
     """
     pass
 
-def postOrderPrint(node):
+def post_order_print(node):
     """
     Helper to print data in post-order.
     """
     pass
 
+
 ########################
 # 7) The Display Filter Sub-Menu
 ########################
 
-def displayFilterSubMenu(ownerNode):
+def display_filter_sub_menu(owner_node):
     """
     1) Only type X
     2) Only evolvable
@@ -218,11 +225,12 @@ def displayFilterSubMenu(ownerNode):
     """
     pass
 
+
 ########################
 # 8) Sub-menu & Main menu
 ########################
 
-def existingPokedex():
+def existing_pokedex():
     """
     Ask user for an owner name, locate the BST node, then show sub-menu:
     - Add Pokemon
@@ -233,7 +241,7 @@ def existingPokedex():
     """
     pass
 
-def mainMenu():
+def main_menu():
     """
     Main menu for:
     1) New Pokedex
@@ -247,7 +255,7 @@ def mainMenu():
 
 def main():
     """
-    Entry point: calls mainMenu().
+    Entry point: calls main_menu().
     """
     pass
 
