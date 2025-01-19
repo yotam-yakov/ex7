@@ -5,7 +5,7 @@ from PIL import Image, ImageTk
 import os
 
 
-def showPokedexGUI(pokeList):
+def show_Pokedex_GUI(pokeList):
     """
     Display each Pokemon in a simple Tkinter window with its Name, Type, HP,
     Attack, and optionally an image from the 'pokemons' folder.
