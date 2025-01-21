@@ -1,46 +1,46 @@
-import openpyxl  # We'll parse the xlsx with openpyxl
+import csv
 
 # Global BST root
-owner_root = None
+ownerRoot = None
 
 ########################
-# 0) Read from XLSX - HONEN_DATA
+# 0) Read from CSV -> HONEN_DATA
 ########################
 
-def read_honen_xlsx(filename):
+
+def read_honen_csv(filename):
     """
-    Reads 'Honen_Pokedex.xlsx' and returns a list of dicts:
+    Reads 'Honen_Pokedex.csv' and returns a list of dicts:
       [ { "ID": int, "Name": str, "Type": str, "HP": int,
           "Attack": int, "Can Evolve": "TRUE"/"FALSE" },
         ... ]
     """
-    wb = openpyxl.load_workbook(filename)
-    sheet = wb.active
-
     data_list = []
-    first_row = True
-    for row in sheet.iter_rows(values_only=True):
-        if first_row:
-            first_row = False
-            continue
-        if row[0] is None:
-            break  # empty row => stop
+    with open(filename, mode='r', encoding='utf-8') as f:
+        reader = csv.reader(f, delimiter='\t')
+        first_row = True
+        for row in reader:
+            # If it's the header row (like ID,Name,Type,HP,Attack,Can Evolve), skip it
+            if first_row:
+                first_row = False
+                continue
 
-        # row => (ID, Name, Type, HP, Attack, Can Evolve)
-        d = {
-            "ID": int(row[0]),
-            "Name": str(row[1]),
-            "Type": str(row[2]),
-            "HP": int(row[3]),
-            "Attack": int(row[4]),
-            "Can Evolve": str(row[5]).upper()
-        }
-        data_list.append(d)
-
+            # row => [ID, Name, Type, HP, Attack, Can Evolve]
+            if not row or not row[0].strip():
+                break  # empty or invalid row => stop
+            d = {
+                "ID": int(row[0]),
+                "Name": str(row[1]),
+                "Type": str(row[2]),
+                "HP": int(row[3]),
+                "Attack": int(row[4]),
+                "Can Evolve": str(row[5]).upper()
+            }
+            data_list.append(d)
     return data_list
 
-# Actually load from the file:
-HONEN_DATA = read_honen_xlsx("Honen_Pokedex.xlsx")
+
+HONEN_DATA = read_honen_csv("Honen_Pokedex.csv")
 
 
 ########################
