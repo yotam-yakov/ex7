@@ -4,7 +4,7 @@ import csv
 ownerRoot = None
 
 ########################
-# 0) Read from CSV -> HONEN_DATA
+# 0) Read from CSV -> HOENN_DATA
 ########################
 
 
@@ -20,7 +20,7 @@ def read_hoenn_csv(filename):
         reader = csv.reader(f, delimiter=',')  # Use comma as the delimiter
         first_row = True
         for row in reader:
-            # If it's the header row (like ID,Name,Type,HP,Attack,Can Evolve), skip it
+            # It's the header row (like ID,Name,Type,HP,Attack,Can Evolve), skip it
             if first_row:
                 first_row = False
                 continue
@@ -40,7 +40,7 @@ def read_hoenn_csv(filename):
     return data_list
 
 
-HONEN_DATA = read_hoenn_csv("hoenn_pokedex.csv")
+HOENN_DATA = read_hoenn_csv("hoenn_pokedex.csv")
 
 ########################
 # 1) Helper Functions
@@ -54,13 +54,13 @@ def read_int_safe(prompt):
 
 def get_poke_dict_by_id(poke_id):
     """
-    Return a copy of the Pokemon dict from HONEN_DATA by ID, or None if not found.
+    Return a copy of the Pokemon dict from HOENN_DATA by ID, or None if not found.
     """
     pass
 
 def get_poke_dict_by_name(name):
     """
-    Return a copy of the Pokemon dict from HONEN_DATA by name, or None if not found.
+    Return a copy of the Pokemon dict from HOENN_DATA by name, or None if not found.
     """
     pass
 
