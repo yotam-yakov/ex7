@@ -8,16 +8,16 @@ ownerRoot = None
 ########################
 
 
-def read_honen_csv(filename):
+def read_hoenn_csv(filename):
     """
-    Reads 'Honen_Pokedex.csv' and returns a list of dicts:
+    Reads 'hoenn_pokedex.csv' and returns a list of dicts:
       [ { "ID": int, "Name": str, "Type": str, "HP": int,
           "Attack": int, "Can Evolve": "TRUE"/"FALSE" },
         ... ]
     """
     data_list = []
     with open(filename, mode='r', encoding='utf-8') as f:
-        reader = csv.reader(f, delimiter='\t')
+        reader = csv.reader(f, delimiter=',')  # Use comma as the delimiter
         first_row = True
         for row in reader:
             # If it's the header row (like ID,Name,Type,HP,Attack,Can Evolve), skip it
@@ -27,7 +27,7 @@ def read_honen_csv(filename):
 
             # row => [ID, Name, Type, HP, Attack, Can Evolve]
             if not row or not row[0].strip():
-                break  # empty or invalid row => stop
+                break  # Empty or invalid row => stop
             d = {
                 "ID": int(row[0]),
                 "Name": str(row[1]),
@@ -40,8 +40,7 @@ def read_honen_csv(filename):
     return data_list
 
 
-HONEN_DATA = read_honen_csv("Honen_Pokedex.csv")
-
+HONEN_DATA = read_hoenn_csv("hoenn_pokedex.csv")
 
 ########################
 # 1) Helper Functions
