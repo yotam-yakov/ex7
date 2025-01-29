@@ -1,5 +1,5 @@
 import csv
-from random import choice
+# from random import choice
 
 # Global BST root
 ownerRoot = None
@@ -53,11 +53,11 @@ def read_int_safe(prompt):
         num = input(prompt)
     return int(num)
 
-def get_poke_dict_by_id(owner, pokemon_id):
-    for pokemon in owner['pokedex']:
-        if pokemon['ID'] == pokemon_id:
-            return pokemon
-    return False
+def get_poke_dict_by_id(pokemon_id):
+    if pokemon_id > 135 or pokemon_id < 1:
+        print("ID {0} not found in Honen data.".format(pokemon_id))
+        return False
+    else: return HOENN_DATA[pokemon_id]
 
 def get_poke_dict_by_name(name):
     """
@@ -65,10 +65,54 @@ def get_poke_dict_by_name(name):
     """
     pass
 
-def display_pokemon_list(pokemon_list):
+def display_pokemon_list(pokedex):
+    filter_type = display_menu()
+    while filter_type != 7:
+        filtered_list = filter_pokedex(filter_type, pokedex)
 
+        if len(filtered_list) == 0:
+            print("There are no Pokemons in this Pokedex that match the criteria.")
+            continue
+
+        for pokemon in filtered_list:
+            print("ID: {0}, Name: {1}, Type: {2}, HP: {3}, Attack: {4}, Can Evolve: {5}"\
+                  .format(pokemon['ID'], pokemon['Name'], pokemon['Type'], pokemon['HP'], pokemon['Attack'], pokemon['Can Evolve']))
+
+        filter_type = display_menu()
 
     pass
+
+def filter_pokedex(filter_type, pokedex):
+    pokemon_list = []
+
+    if filter_type == 1:
+        pokemon_type = input("Which Type? (e.g. GRASS, WATER): ").lower()
+        for pokemon in pokedex:
+            if pokemon['Type'].lower() == pokemon_type:
+                pokemon_list.append(pokemon)
+    elif filter_type == 2:
+        for pokemon in pokedex:
+            if pokemon['Can Evolve']:
+                pokemon_list.append(pokemon)
+    elif filter_type == 3:
+        attack = read_int_safe("Enter Attack threshold: ")
+        for pokemon in pokedex:
+            if pokemon['Attack'] > attack:
+                pokemon_list.append(pokemon)
+    elif filter_type == 4:
+        hp = read_int_safe("Enter HP threshold: ")
+        for pokemon in pokedex:
+            if pokemon['HP'] > hp:
+                pokemon_list.append(pokemon)
+    elif filter_type == 5:
+        name_start = input("Starting letter(s): ").lower()
+        for pokemon in pokedex:
+            if pokemon['Name'].lower().startswith(name_start):
+                pokemon_list.append(pokemon)
+    elif filter_type == 6:
+        pokemon_list = pokedex
+
+    return pokemon_list
 
 
 ########################
@@ -162,15 +206,15 @@ def post_order(root):
 
 def add_pokemon_to_owner(owner):
     index = read_int_safe("Enter Pokemon ID to add: ")
-    if get_poke_dict_by_id(owner, index):
-        print("Pokemon already in the list. No changes made.")
+    for pokemon in owner['pokedex']:
+        if pokemon['ID'] == index:
+            print("Pokemon already in the list. No changes made.")
         return
 
     new_pokemon = HOENN_DATA[index - 1]
 
     owner['pokedex'].append(new_pokemon)
     pass
-
 
 def release_pokemon_by_name(owner_node):
     """
@@ -236,24 +280,7 @@ def post_order_print(node):
 
 
 ########################
-# 7) The Display Filter Sub-Menu
-########################
-
-def display_filter_sub_menu(owner_node):
-    """
-    1) Only type X
-    2) Only evolvable
-    3) Only Attack above
-    4) Only HP above
-    5) Only name starts with
-    6) All
-    7) Back
-    """
-    pass
-
-
-########################
-# 8) Sub-menu & Main menu
+# 7) Sub-menu & Main menu
 ########################
 
 def existing_pokedex(owner):
@@ -262,10 +289,27 @@ def existing_pokedex(owner):
         if choice == 1:
             add_pokemon_to_owner(owner)
         elif choice == 2:
-            print("2")
+            display_pokemon_list(owner['pokedex'])
         choice = pokedex_menu(owner['name'])
 
     pass
+
+########################
+# 8) Menu Printing Functions
+########################
+
+def display_menu():
+    print("-- Display Filter Menu --\n\
+    1. Only a certain Type\n\
+    2. Only Evolvable\n\
+    3. Only Attack above __\n\
+    4. Only HP above __\n\
+    5. Only names starting with letter(s)\n\
+    6. All of them!\n\
+    7. Back\n\
+    ")
+    num = read_int_safe("Your choice: ")
+    return num
 
 def pokedex_menu(name):
     print("-- {0}'s Pokedex Menu --\n\
@@ -281,13 +325,13 @@ def pokedex_menu(name):
 
 def main_menu():
     print("=== Main Menu ===\n\
-1. New Pokedex\n\
-2. Existing Pokedex\n\
-3. Delete a Pokedex\n\
-4. Display owners by number of Pokemon\n\
-5. Print All\n\
-6. Exit\n\
-")
+    1. New Pokedex\n\
+    2. Existing Pokedex\n\
+    3. Delete a Pokedex\n\
+    4. Display owners by number of Pokemon\n\
+    5. Print All\n\
+    6. Exit\n\
+    ")
     pass
 
 ########################
