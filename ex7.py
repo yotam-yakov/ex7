@@ -1,4 +1,5 @@
 import csv
+from random import choice
 
 # Global BST root
 ownerRoot = None
@@ -39,7 +40,6 @@ def read_hoenn_csv(filename):
             data_list.append(d)
     return data_list
 
-
 HOENN_DATA = read_hoenn_csv("hoenn_pokedex.csv")
 
 ########################
@@ -47,16 +47,17 @@ HOENN_DATA = read_hoenn_csv("hoenn_pokedex.csv")
 ########################
 
 def read_int_safe(prompt):
-    """
-    Prompt the user for an integer, re-prompting on invalid input.
-    """
-    pass
+    num = input(prompt)
+    while not num.isnumeric() or int(num) < 1:
+        print("Invalid input")
+        num = input(prompt)
+    return int(num)
 
-def get_poke_dict_by_id(poke_id):
-    """
-    Return a copy of the Pokemon dict from HOENN_DATA by ID, or None if not found.
-    """
-    pass
+def get_poke_dict_by_id(owner, pokemon_id):
+    for pokemon in owner['pokedex']:
+        if pokemon['ID'] == pokemon_id:
+            return pokemon
+    return False
 
 def get_poke_dict_by_name(name):
     """
@@ -64,10 +65,9 @@ def get_poke_dict_by_name(name):
     """
     pass
 
-def display_pokemon_list(poke_list):
-    """
-    Display a list of Pokemon dicts, or a message if empty.
-    """
+def display_pokemon_list(pokemon_list):
+
+
     pass
 
 
@@ -76,22 +76,43 @@ def display_pokemon_list(poke_list):
 ########################
 
 def create_owner_node(owner_name, first_pokemon=None):
-    """
-    Create and return a BST node dict with keys: 'owner', 'pokedex', 'left', 'right'.
-    """
-    pass
+    pokedex = [first_pokemon]
+    owner = {'name': owner_name, 'pokedex': pokedex, 'left': None, 'right': None}
 
-def insert_owner_bst(root, new_node):
-    """
-    Insert a new BST node by owner_name (alphabetically). Return updated root.
-    """
+    return owner
+
+def insert_owner_bst(new_node, root):
+    if root is None:
+        global ownerRoot
+        ownerRoot = new_node
+        return 1
+
+    root_name = root['name'].lower()
+    new_name = new_node['name'].lower()
+
+    if root_name > new_name:
+        if root['left'] is None:
+            root['left'] = new_node
+            return True
+        else: return insert_owner_bst(new_node, root['left'])
+    elif root_name < new_name:
+        if root['right'] is None:
+            root['right'] = new_node
+            return True
+        else: return insert_owner_bst(new_node, root['right'])
+    else:
+        return False
     pass
 
 def find_owner_bst(root, owner_name):
-    """
-    Locate a BST node by owner_name. Return that node or None if missing.
-    """
-    pass
+    if root is None:
+        return None
+
+    if root['name'] > owner_name:
+        return find_owner_bst(root['left'], owner_name)
+    elif root['name'] < owner_name:
+        return find_owner_bst(root['right'], owner_name)
+    else: return root
 
 def min_node(node):
     """
@@ -139,11 +160,17 @@ def post_order(root):
 # 4) Pokedex Operations
 ########################
 
-def add_pokemon_to_owner(owner_node):
-    """
-    Prompt user for a Pokemon ID, find the data, and add to this owner's pokedex if not duplicate.
-    """
+def add_pokemon_to_owner(owner):
+    index = read_int_safe("Enter Pokemon ID to add: ")
+    if get_poke_dict_by_id(owner, index):
+        print("Pokemon already in the list. No changes made.")
+        return
+
+    new_pokemon = HOENN_DATA[index - 1]
+
+    owner['pokedex'].append(new_pokemon)
     pass
+
 
 def release_pokemon_by_name(owner_node):
     """
@@ -229,33 +256,88 @@ def display_filter_sub_menu(owner_node):
 # 8) Sub-menu & Main menu
 ########################
 
-def existing_pokedex():
-    """
-    Ask user for an owner name, locate the BST node, then show sub-menu:
-    - Add Pokemon
-    - Display (Filter)
-    - Release
-    - Evolve
-    - Back
-    """
+def existing_pokedex(owner):
+    choice = pokedex_menu(owner['name'])
+    while choice != 5:
+        if choice == 1:
+            add_pokemon_to_owner(owner)
+        elif choice == 2:
+            print("2")
+        choice = pokedex_menu(owner['name'])
+
     pass
+
+def pokedex_menu(name):
+    print("-- {0}'s Pokedex Menu --\n\
+    1. Add Pokemon\n\
+    2. Display Pokedex\n\
+    3. Release Pokemon\n\
+    4. Evolve Pokemon\n\
+    5. Back to Main\n\
+    ".format(name))
+
+    num = read_int_safe("Your choice: ")
+    return num
 
 def main_menu():
-    """
-    Main menu for:
-    1) New Pokedex
-    2) Existing Pokedex
-    3) Delete a Pokedex
-    4) Sort owners
-    5) Print all
-    6) Exit
-    """
+    print("=== Main Menu ===\n\
+1. New Pokedex\n\
+2. Existing Pokedex\n\
+3. Delete a Pokedex\n\
+4. Display owners by number of Pokemon\n\
+5. Print All\n\
+6. Exit\n\
+")
     pass
 
+########################
+# 9) Main Functions
+########################
+
+def add_pokedex():
+    print("Choose your starter Pokemon:\n\
+    1) Treecko\n\
+    2) Torchic\n\
+    3) Mudkip\n\
+    ")
+
+    starter = read_int_safe("Your choice: ")
+    first_pokemon = HOENN_DATA[starter * 3 - 3]
+    owner_name = input("Owner name: ")
+
+    global ownerRoot
+    new_owner = create_owner_node(owner_name, first_pokemon)
+    success = insert_owner_bst(new_owner, ownerRoot)
+
+    if success:
+        print("New Pokedex created for {0} with starter {1}.".format(owner_name, first_pokemon['Name']))
+    else: print("Owner '{0}' already exists. No new Pokedex created.".format(owner_name))
+
+def enter_pokedex():
+    global ownerRoot
+    name = input("Owner name: ")
+
+    owner = find_owner_bst(ownerRoot, name)
+    if owner is None:
+        print("Owner '{0}' not found.".format(name))
+        return
+
+    existing_pokedex(owner)
+
+
+
 def main():
-    """
-    Entry point: calls main_menu().
-    """
+    main_menu()
+    choice = read_int_safe("Your choice: ")
+
+    while choice != 6:
+        if choice == 1:
+            add_pokedex()
+        elif choice == 2:
+            enter_pokedex()
+        main_menu()
+        choice = read_int_safe("Your choice: ")
+    print("Goodbye!")
     pass
 
 if __name__ == "__main__":
