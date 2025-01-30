@@ -60,10 +60,10 @@ def get_poke_dict_by_id(pokemon_id):
     else: return HOENN_DATA[pokemon_id]
 
 def get_poke_dict_by_name(name):
-    """
-    Return a copy of the Pokemon dict from HOENN_DATA by name, or None if not found.
-    """
-    pass
+    for pokemon in HOENN_DATA:
+        if pokemon['Name'].lower() == name.lower():
+            return pokemon
+    return None
 
 def display_pokemon_list(pokedex):
     filter_type = display_menu()
@@ -72,14 +72,12 @@ def display_pokemon_list(pokedex):
 
         if len(filtered_list) == 0:
             print("There are no Pokemons in this Pokedex that match the criteria.")
-            continue
 
         for pokemon in filtered_list:
             print("ID: {0}, Name: {1}, Type: {2}, HP: {3}, Attack: {4}, Can Evolve: {5}"\
                   .format(pokemon['ID'], pokemon['Name'], pokemon['Type'], pokemon['HP'], pokemon['Attack'], pokemon['Can Evolve']))
 
         filter_type = display_menu()
-
     pass
 
 def filter_pokedex(filter_type, pokedex):
@@ -209,17 +207,23 @@ def add_pokemon_to_owner(owner):
     for pokemon in owner['pokedex']:
         if pokemon['ID'] == index:
             print("Pokemon already in the list. No changes made.")
-        return
+            return
 
     new_pokemon = HOENN_DATA[index - 1]
-
     owner['pokedex'].append(new_pokemon)
+    print("Pokemon {0} (ID {1}) added to {2}'s Pokedex.".format(new_pokemon['Name'], new_pokemon['ID'], owner['name']))
     pass
 
-def release_pokemon_by_name(owner_node):
-    """
-    Prompt user for a Pokemon name, remove it from this owner's pokedex if found.
-    """
+def release_pokemon_by_name(owner):
+    pokemon_name = input("Enter Pokemon Name to release: ").lower()
+
+    for pokemon in owner['pokedex']:
+        if pokemon['Name'].lower() == pokemon_name.lower():
+            print("Releasing {0} from {1}.".format(pokemon['Name'], owner['name']))
+            owner['pokedex'].remove(pokemon)
+            return
+
+    print("No pokemon named '{0}' in {1}'s Pokedex.".format(pokemon_name, owner['name']))
     pass
 
 def evolve_pokemon_by_name(owner_node):
@@ -290,6 +294,8 @@ def existing_pokedex(owner):
             add_pokemon_to_owner(owner)
         elif choice == 2:
             display_pokemon_list(owner['pokedex'])
+        elif choice == 3:
+            release_pokemon_by_name(owner)
         choice = pokedex_menu(owner['name'])
 
     pass
