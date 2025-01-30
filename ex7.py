@@ -65,10 +65,10 @@ def get_poke_dict_by_name(name):
             return pokemon
     return None
 
-def display_pokemon_list(pokedex):
+def display_pokemon_list(owner):
     filter_type = display_menu()
     while filter_type != 7:
-        filtered_list = filter_pokedex(filter_type, pokedex)
+        filtered_list = filter_pokedex(filter_type, owner['pokedex'])
 
         if len(filtered_list) == 0:
             print("There are no Pokemons in this Pokedex that match the criteria.")
@@ -226,14 +226,35 @@ def release_pokemon_by_name(owner):
     print("No pokemon named '{0}' in {1}'s Pokedex.".format(pokemon_name, owner['name']))
     pass
 
-def evolve_pokemon_by_name(owner_node):
-    """
-    Evolve a Pokemon by name:
-    1) Check if it can evolve
-    2) Remove old
-    3) Insert new
-    4) If new is a duplicate, remove it immediately
-    """
+def evolve_pokemon_by_name(owner):
+    pokemon_name = input("Enter Pokemon Name to evolve: ").lower()
+    pokemon = None
+
+    for pokemon_node in owner['pokedex']:
+        if pokemon_node['Name'].lower() == pokemon_name:
+            pokemon = pokemon_node
+    if not pokemon:
+        print("No Pokemon named '{0}' in {1}'s Pokedex.".format(pokemon_name, owner['name']))
+        return
+    if pokemon['Can Evolve'] == 'FALSE':
+        print("{0} cannot evolve.".format(pokemon['Name']))
+        return
+
+    evolution = get_poke_dict_by_id(pokemon['ID'])
+    duplicate = None
+
+    for pokemon_node in owner['pokedex']:
+        if pokemon_node == evolution:
+            duplicate = pokemon_node
+
+    owner['pokedex'].append(evolution)
+    owner['pokedex'].remove(pokemon)
+    print("Pokemon evolved from {0} (ID {1}) to {2} (ID {3})."\
+          .format(pokemon['Name'], pokemon['ID'], evolution['Name'], evolution['ID']))
+
+    if duplicate:
+        print("{0} was already present; releasing it immediately.".format(duplicate['Name']))
+        owner['pokedex'].pop()
     pass
 
 
@@ -293,9 +314,11 @@ def existing_pokedex(owner):
         if choice == 1:
             add_pokemon_to_owner(owner)
         elif choice == 2:
-            display_pokemon_list(owner['pokedex'])
+            display_pokemon_list(owner)
         elif choice == 3:
             release_pokemon_by_name(owner)
+        elif choice == 4:
+            evolve_pokemon_by_name(owner)
         choice = pokedex_menu(owner['name'])
 
     pass
