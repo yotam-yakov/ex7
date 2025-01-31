@@ -163,9 +163,23 @@ def min_node(node):
     pass
 
 def delete_owner_bst(root, owner_name):
-    """
-    Remove a node from the BST by owner_name. Return updated root.
-    """
+
+    if root['name'].lower() == owner_name.lower():
+        if root['right']:
+            if root['left']:
+                insert_owner_bst(root['left'], root['right'])
+            root = root['right']
+        elif root['left']:
+            root = root['left']
+        else: root = None
+        return root
+
+    elif owner_name > root['name'].lower and root['right'].lower:
+        root['right'] = delete_owner_bst(root['right'], owner_name)
+    elif owner_name < root['name'].lower and root['left'].lower:
+        root['left'] = delete_owner_bst(root['left'], owner_name)
+
+    return root
     pass
 
 
@@ -368,15 +382,16 @@ def main_menu():
 ########################
 
 def add_pokedex():
+
+    owner_name = input("Owner name: ")
+
     print("Choose your starter Pokemon:\n\
     1) Treecko\n\
     2) Torchic\n\
     3) Mudkip\n\
     ")
-
     starter = read_int_safe("Your choice: ")
     first_pokemon = HOENN_DATA[starter * 3 - 3]
-    owner_name = input("Owner name: ")
 
     global ownerRoot
     new_owner = create_owner_node(owner_name, first_pokemon)
@@ -397,6 +412,21 @@ def enter_pokedex():
 
     existing_pokedex(owner)
 
+def delete_pokedex():
+    global ownerRoot
+
+    owner_name = input("Enter owner to delete: ")
+    print("Deleting {0}'s entire Pokedex...")
+
+    if ownerRoot is None:
+        print("No owners to delete.")
+        return
+    if not find_owner_bst(ownerRoot, owner_name):
+        print("Owner '{0}' not found.".format(owner_name))
+        return
+
+    ownerRoot = delete_owner_bst(ownerRoot, owner_name)
+    pass
 
 
 def main():
@@ -408,6 +438,8 @@ def main():
             add_pokedex()
         elif choice == 2:
             enter_pokedex()
+        elif choice == 3:
+            delete_pokedex()
         main_menu()
         choice = read_int_safe("Your choice: ")
     print("Goodbye!")
