@@ -277,7 +277,7 @@ def evolve_pokemon_by_name(owner):
 ########################
 
 def gather_all_owners(root, array):
-    if not root:
+    if root is None:
         return array
 
     array.append(root)
@@ -302,22 +302,58 @@ def sort_owners_by_num_pokemon():
 # 6) Print All
 ########################
 
+def print_owner(owner):
+    print("\nOwner: {0}".format(owner['name']))
+    if len(owner['pokedex']) == 0:
+        print("There are no Pokemons in this Pokedex that match the criteria.")
+        return
+
+    for pokemon in owner['pokedex']:
+        print("ID: {0}, Name: {1}, Type: {2}, HP: {3}, Attack: {4}, Can Evolve: {5}"\
+              .format(pokemon['ID'], pokemon['Name'], pokemon['Type'],
+                      pokemon['HP'], pokemon['Attack'], pokemon['Can Evolve']))
+
+def bfs_print(node):
+    if node is None:
+        return
+
+    owners = [node]
+
+    while len(owners) > 0:
+        print_owner(owners[0])
+        if owners[0]['left']:
+            owners.append(owners[0]['left'])
+        if owners[0]['right']:
+            owners.append(owners[0]['right'])
+        owners.pop(0)
+
+    pass
+
 def pre_order_print(node):
-    """
-    Helper to print data in pre-order.
-    """
+    if node is None:
+        return
+
+    print_owner(node)
+    pre_order_print(node['left'])
+    pre_order_print(node['right'])
     pass
 
 def in_order_print(node):
-    """
-    Helper to print data in in-order.
-    """
+    if node is None:
+        return
+
+    pre_order_print(node['left'])
+    print_owner(node)
+    pre_order_print(node['right'])
     pass
 
 def post_order_print(node):
-    """
-    Helper to print data in post-order.
-    """
+    if node is None:
+        return
+
+    pre_order_print(node['left'])
+    pre_order_print(node['right'])
+    print_owner(node)
     pass
 
 
@@ -345,7 +381,7 @@ def existing_pokedex(owner):
 ########################
 
 def display_menu():
-    print("-- Display Filter Menu --\n\
+    print("\n-- Display Filter Menu --\n\
     1. Only a certain Type\n\
     2. Only Evolvable\n\
     3. Only Attack above __\n\
@@ -357,7 +393,7 @@ def display_menu():
     return read_int_safe("Your choice: ")
 
 def pokedex_menu(name):
-    print("-- {0}'s Pokedex Menu --\n\
+    print("\n-- {0}'s Pokedex Menu --\n\
     1. Add Pokemon\n\
     2. Display Pokedex\n\
     3. Release Pokemon\n\
@@ -367,8 +403,16 @@ def pokedex_menu(name):
 
     return read_int_safe("Your choice: ")
 
+def print_owners_menu():
+    print("1) BFS\n\
+2) Pre-Order\n\
+3) In-Order\n\
+4) Post-Order\n\
+")
+    return read_int_safe("Your choice: ")
+
 def main_menu():
-    print("=== Main Menu ===\n\
+    print("\n=== Main Menu ===\n\
     1. New Pokedex\n\
     2. Existing Pokedex\n\
     3. Delete a Pokedex\n\
@@ -440,13 +484,26 @@ def print_sorted_owners():
     sorted_list = sorted(owners_list, key=lambda owner_node: owner_node['name'])
     sorted_list = sorted(sorted_list, key=lambda owner_node: len(owner_node['pokedex']))
 
+    print("=== The Owners we have, sorted by number of Pokemons ===")
     for owner in sorted_list:
         print("Owner: {0} (has {1} Pokemon)".format(owner['name'], len(owner['pokedex'])))
 
 def print_all_owners():
-    """
-    Let user pick BFS, Pre, In, or Post. Print each owner's data/pokedex accordingly.
-    """
+    global ownerRoot
+    if ownerRoot is None:
+        print("No owners in the BST.")
+        return
+
+    choice = print_owners_menu()
+
+    if choice == 1:
+        bfs_print(ownerRoot)
+    elif choice == 2:
+        pre_order_print(ownerRoot)
+    elif choice == 3:
+        in_order_print(ownerRoot)
+    elif choice == 4:
+        post_order_print(ownerRoot)
     pass
 
 
