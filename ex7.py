@@ -276,10 +276,19 @@ def evolve_pokemon_by_name(owner):
 # 5) Sorting Owners by # of Pokemon
 ########################
 
-def gather_all_owners(root, arr):
-    """
-    Collect all BST nodes into a list (arr).
-    """
+def gather_all_owners(root, array):
+    if not root:
+        return array
+
+    array.append(root)
+
+    if root['left']:
+        array = gather_all_owners(root['left'], array)
+    if root['right']:
+        array = gather_all_owners(root['right'], array)
+
+
+    return array
     pass
 
 def sort_owners_by_num_pokemon():
@@ -292,12 +301,6 @@ def sort_owners_by_num_pokemon():
 ########################
 # 6) Print All
 ########################
-
-def print_all_owners():
-    """
-    Let user pick BFS, Pre, In, or Post. Print each owner's data/pokedex accordingly.
-    """
-    pass
 
 def pre_order_print(node):
     """
@@ -351,8 +354,7 @@ def display_menu():
     6. All of them!\n\
     7. Back\n\
     ")
-    num = read_int_safe("Your choice: ")
-    return num
+    return read_int_safe("Your choice: ")
 
 def pokedex_menu(name):
     print("-- {0}'s Pokedex Menu --\n\
@@ -363,8 +365,7 @@ def pokedex_menu(name):
     5. Back to Main\n\
     ".format(name))
 
-    num = read_int_safe("Your choice: ")
-    return num
+    return read_int_safe("Your choice: ")
 
 def main_menu():
     print("=== Main Menu ===\n\
@@ -375,7 +376,7 @@ def main_menu():
     5. Print All\n\
     6. Exit\n\
     ")
-    pass
+    return read_int_safe("Your choice: ")
 
 ########################
 # 9) Main Functions
@@ -428,10 +429,30 @@ def delete_pokedex():
     ownerRoot = delete_owner_bst(ownerRoot, owner_name)
     pass
 
+def print_sorted_owners():
+    if ownerRoot is None:
+        print("No owners at all.")
+        return
+
+    owners_list = []
+    owners_list = gather_all_owners(ownerRoot, owners_list)
+
+    sorted_list = sorted(owners_list, key=lambda owner_node: owner_node['name'])
+    sorted_list = sorted(sorted_list, key=lambda owner_node: len(owner_node['pokedex']))
+
+    for owner in sorted_list:
+        print("Owner: {0} (has {1} Pokemon)".format(owner['name'], len(owner['pokedex'])))
+
+def print_all_owners():
+    """
+    Let user pick BFS, Pre, In, or Post. Print each owner's data/pokedex accordingly.
+    """
+    pass
+
+
 
 def main():
-    main_menu()
-    choice = read_int_safe("Your choice: ")
+    choice = main_menu()
 
     while choice != 6:
         if choice == 1:
@@ -440,8 +461,11 @@ def main():
             enter_pokedex()
         elif choice == 3:
             delete_pokedex()
-        main_menu()
-        choice = read_int_safe("Your choice: ")
+        elif choice == 4:
+            print_sorted_owners()
+        elif choice == 5:
+            print_all_owners()
+        choice = main_menu()
     print("Goodbye!")
     pass
 
