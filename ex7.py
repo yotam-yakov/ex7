@@ -8,7 +8,6 @@ ownerRoot = None
 # 0) Read from CSV -> HOENN_DATA
 ########################
 
-
 def read_hoenn_csv(filename):
     """
     Reads 'hoenn_pokedex.csv' and returns a list of dicts:
@@ -47,66 +46,106 @@ HOENN_DATA = read_hoenn_csv("hoenn_pokedex.csv")
 ########################
 
 def read_int_safe(prompt):
-    num = input(prompt)
-    while not num.isnumeric() or int(num) < 1:
-        print("Invalid input")
+    """
+    Get and validate integer input from user.
+    """
+    while True:
         num = input(prompt)
-    return int(num)
+        negative = False
+
+        # Check if input is negative
+        if num[0] == '-':
+            negative = True
+            num = num[1:]
+
+        # Validate numeric input
+        if num.isnumeric():
+            num = int(num)
+            # Correct negative number
+            if negative:
+                num = num * -1
+            return num
+
+        print("Invalid input.")
 
 def get_poke_dict_by_id(pokemon_id):
-    if pokemon_id > 135 or pokemon_id < 1:
+    """
+    Return Pokemon dict by id
+    """
+    # Verify valid range of input
+    if pokemon_id < 1 or pokemon_id > 135:
         print("ID {0} not found in Honen data.".format(pokemon_id))
-        return False
-    else: return HOENN_DATA[pokemon_id]
+        return None
+    # Return dict of Pokemon from data
+    else: return HOENN_DATA[pokemon_id - 1]
 
 def get_poke_dict_by_name(name):
+    """
+    Return Pokemon dict by name
+    """
+    # Find Pokemon name in data
     for pokemon in HOENN_DATA:
         if pokemon['Name'].lower() == name.lower():
             return pokemon
     return None
 
-def display_pokemon_list(owner):
-    filter_type = display_menu()
-    while filter_type != 7:
-        filtered_list = filter_pokedex(filter_type, owner['pokedex'])
+def gather_all_owners(root, array):
+    """
+    Create and return array of all owners
+    """
+    # If no more owners in branch return the array
+    if root is None:
+        return array
 
-        if len(filtered_list) == 0:
-            print("There are no Pokemons in this Pokedex that match the criteria.")
+    # Add current owner node to array
+    array.append(root)
 
-        for pokemon in filtered_list:
-            print("ID: {0}, Name: {1}, Type: {2}, HP: {3}, Attack: {4}, Can Evolve: {5}"\
-                  .format(pokemon['ID'], pokemon['Name'], pokemon['Type'], pokemon['HP'], pokemon['Attack'], pokemon['Can Evolve']))
+    # Continue gathering from both sides
+    if root['left']:
+        array = gather_all_owners(root['left'], array)
+    if root['right']:
+        array = gather_all_owners(root['right'], array)
 
-        filter_type = display_menu()
-    pass
+    # Return full array
+    return array
 
 def filter_pokedex(filter_type, pokedex):
+    """
+    Filter list of Pokemon by filter type input
+    """
     pokemon_list = []
 
+    # Use correct filter fo input
+    # Filter by Pokemon type
     if filter_type == 1:
         pokemon_type = input("Which Type? (e.g. GRASS, WATER): ").lower()
         for pokemon in pokedex:
             if pokemon['Type'].lower() == pokemon_type:
                 pokemon_list.append(pokemon)
+    # Filter by evolvable Pokemon
     elif filter_type == 2:
         for pokemon in pokedex:
-            if pokemon['Can Evolve']:
+            if pokemon['Can Evolve'] == "TRUE":
                 pokemon_list.append(pokemon)
+    # Filter by attack value
     elif filter_type == 3:
         attack = read_int_safe("Enter Attack threshold: ")
         for pokemon in pokedex:
             if pokemon['Attack'] > attack:
                 pokemon_list.append(pokemon)
+    # Filter by HP value
     elif filter_type == 4:
         hp = read_int_safe("Enter HP threshold: ")
         for pokemon in pokedex:
             if pokemon['HP'] > hp:
                 pokemon_list.append(pokemon)
+    # Filter by starting letters
     elif filter_type == 5:
         name_start = input("Starting letter(s): ").lower()
         for pokemon in pokedex:
             if pokemon['Name'].lower().startswith(name_start):
                 pokemon_list.append(pokemon)
+    # Show all Pokemon unfiltered
     elif filter_type == 6:
         pokemon_list = pokedex
 
@@ -114,56 +153,69 @@ def filter_pokedex(filter_type, pokedex):
 
 
 ########################
-# 2) BST (By Owner Name)
+# 2) Owners BST Operations
 ########################
 
 def create_owner_node(owner_name, first_pokemon=None):
+    """
+    Create owner from starting parameters
+    """
+    # Fill owner data in structre
     pokedex = [first_pokemon]
     owner = {'name': owner_name, 'pokedex': pokedex, 'left': None, 'right': None}
 
     return owner
 
 def insert_owner_bst(new_node, root):
+    """
+    Insert owner node to the BST
+    """
+    # If first owner
     if root is None:
         global ownerRoot
         ownerRoot = new_node
         return 1
 
+    # Adjust names for sorting
     root_name = root['name'].lower()
     new_name = new_node['name'].lower()
 
+    # "Smaller" names go left
     if root_name > new_name:
         if root['left'] is None:
             root['left'] = new_node
             return True
         else: return insert_owner_bst(new_node, root['left'])
+    # "Bigger" names go right
     elif root_name < new_name:
         if root['right'] is None:
             root['right'] = new_node
             return True
         else: return insert_owner_bst(new_node, root['right'])
+    # If name already exists
     else:
         return False
-    pass
 
 def find_owner_bst(root, owner_name):
+    """
+    Find owner in BST by name
+    """
+    # If no owners in BST
     if root is None:
         return None
 
-    if root['name'] > owner_name:
+    # Continue search direction by name
+    if root['name'].lower() > owner_name.lower():
         return find_owner_bst(root['left'], owner_name)
-    elif root['name'] < owner_name:
+    elif root['name'].lower() < owner_name.lower():
         return find_owner_bst(root['right'], owner_name)
     else: return root
 
-def min_node(node):
-    """
-    Return the leftmost node in a BST subtree.
-    """
-    pass
-
 def delete_owner_bst(root, owner_name):
-
+    """
+    Delete owner node from BST
+    """
+    # If owner found rewire BST without deleted owner
     if root['name'].lower() == owner_name.lower():
         if root['right']:
             if root['left']:
@@ -174,59 +226,40 @@ def delete_owner_bst(root, owner_name):
         else: root = None
         return root
 
-    elif owner_name > root['name'].lower and root['right'].lower:
+    # If owner not found continue search in name direction
+    elif owner_name.lower() > root['name'].lower() and root['right']:
         root['right'] = delete_owner_bst(root['right'], owner_name)
-    elif owner_name < root['name'].lower and root['left'].lower:
+    elif owner_name.lower() < root['name'].lower() and root['left']:
         root['left'] = delete_owner_bst(root['left'], owner_name)
 
     return root
-    pass
 
 
 ########################
-# 3) BST Traversals
-########################
-
-def bfs_traversal(root):
-    """
-    BFS level-order traversal. Print each owner's name and # of pokemons.
-    """
-    pass
-
-def pre_order(root):
-    """
-    Pre-order traversal (root -> left -> right). Print data for each node.
-    """
-    pass
-
-def in_order(root):
-    """
-    In-order traversal (left -> root -> right). Print data for each node.
-    """
-    pass
-
-def post_order(root):
-    """
-    Post-order traversal (left -> right -> root). Print data for each node.
-    """
-    pass
-
-
-########################
-# 4) Pokedex Operations
+# 3) Pokedex List Operations
 ########################
 
 def add_pokemon_to_owner(owner):
+    """
+    Get ID input from user and add Pokemon to owner
+    """
     index = read_int_safe("Enter Pokemon ID to add: ")
+
+    # Check if Pokemon already in owner's Pokedex
     for pokemon in owner['pokedex']:
         if pokemon['ID'] == index:
             print("Pokemon already in the list. No changes made.")
             return
 
-    new_pokemon = HOENN_DATA[index - 1]
+    # Find Pokemon by ID
+    new_pokemon = get_poke_dict_by_id(index)
+    # If Pokemon not found exit function
+    if new_pokemon is None:
+        return
+
+    # Add Pokemon to owner's Pokedex
     owner['pokedex'].append(new_pokemon)
     print("Pokemon {0} (ID {1}) added to {2}'s Pokedex.".format(new_pokemon['Name'], new_pokemon['ID'], owner['name']))
-    pass
 
 def release_pokemon_by_name(owner):
     pokemon_name = input("Enter Pokemon Name to release: ").lower()
@@ -237,8 +270,7 @@ def release_pokemon_by_name(owner):
             owner['pokedex'].remove(pokemon)
             return
 
-    print("No pokemon named '{0}' in {1}'s Pokedex.".format(pokemon_name, owner['name']))
-    pass
+    print("No Pokemon named '{0}' in {1}'s Pokedex.".format(pokemon_name, owner['name']))
 
 def evolve_pokemon_by_name(owner):
     pokemon_name = input("Enter Pokemon Name to evolve: ").lower()
@@ -254,7 +286,7 @@ def evolve_pokemon_by_name(owner):
         print("{0} cannot evolve.".format(pokemon['Name']))
         return
 
-    evolution = get_poke_dict_by_id(pokemon['ID'])
+    evolution = get_poke_dict_by_id(pokemon['ID'] + 1)
     duplicate = None
 
     for pokemon_node in owner['pokedex']:
@@ -269,118 +301,148 @@ def evolve_pokemon_by_name(owner):
     if duplicate:
         print("{0} was already present; releasing it immediately.".format(duplicate['Name']))
         owner['pokedex'].pop()
-    pass
 
 
 ########################
-# 5) Sorting Owners by # of Pokemon
-########################
-
-def gather_all_owners(root, array):
-    if root is None:
-        return array
-
-    array.append(root)
-
-    if root['left']:
-        array = gather_all_owners(root['left'], array)
-    if root['right']:
-        array = gather_all_owners(root['right'], array)
-
-
-    return array
-    pass
-
-def sort_owners_by_num_pokemon():
-    """
-    Gather owners, sort them by (#pokedex size, then alpha), print results.
-    """
-    pass
-
-
-########################
-# 6) Print All
+# 4) Data Printing Functions
 ########################
 
 def print_owner(owner):
+    """
+    Print owner's name and full Pokedex
+    """
+    # Print owner name
     print("\nOwner: {0}".format(owner['name']))
+    # Check if Pokedex empty
     if len(owner['pokedex']) == 0:
         print("There are no Pokemons in this Pokedex that match the criteria.")
         return
 
+    # Print each Pokemon in Pokedex
     for pokemon in owner['pokedex']:
         print("ID: {0}, Name: {1}, Type: {2}, HP: {3}, Attack: {4}, Can Evolve: {5}"\
               .format(pokemon['ID'], pokemon['Name'], pokemon['Type'],
                       pokemon['HP'], pokemon['Attack'], pokemon['Can Evolve']))
 
 def bfs_print(node):
-    if node is None:
-        return
-
+    """
+    BFS print all owners
+    """
+    # Create list with first owner
     owners = [node]
 
+    # While there are still owners - print
     while len(owners) > 0:
         print_owner(owners[0])
+        # If owner has children add them to the list
         if owners[0]['left']:
             owners.append(owners[0]['left'])
         if owners[0]['right']:
             owners.append(owners[0]['right'])
+        # Remove owner from list after printing
         owners.pop(0)
 
-    pass
-
 def pre_order_print(node):
+    """
+    Print all owners in pre-order
+    """
+    # In end of branch - return
     if node is None:
         return
 
+    # First print owner then children
     print_owner(node)
     pre_order_print(node['left'])
     pre_order_print(node['right'])
-    pass
 
 def in_order_print(node):
+    """
+    Print all owners in in-order
+    """
+    # In end of branch - return
     if node is None:
         return
 
-    pre_order_print(node['left'])
+    # Print left, then owner, then right
+    in_order_print(node['left'])
     print_owner(node)
-    pre_order_print(node['right'])
-    pass
+    in_order_print(node['right'])
 
 def post_order_print(node):
+    """
+    Print all owners in post-order
+    """
+    # In end of branch - return
     if node is None:
         return
 
-    pre_order_print(node['left'])
-    pre_order_print(node['right'])
+    # Print children first then owner
+    post_order_print(node['left'])
+    post_order_print(node['right'])
     print_owner(node)
-    pass
+
+def display_pokemon_list(owner):
+    """
+    Display list of Pokemon by filter
+    """
+    # Print filter menu
+    filter_type = display_menu()
+
+    while filter_type != 7:
+        # Filter list by given input
+        filtered_list = filter_pokedex(filter_type, owner['pokedex'])
+
+        # Verify list not empty
+        if len(filtered_list) == 0:
+            print("There are no Pokemons in this Pokedex that match the criteria.")
+
+        # Print filtered list of Pokemon
+        for pokemon in filtered_list:
+            print("ID: {0}, Name: {1}, Type: {2}, HP: {3}, Attack: {4}, Can Evolve: {5}"\
+                  .format(pokemon['ID'], pokemon['Name'], pokemon['Type'], pokemon['HP'], pokemon['Attack'], pokemon['Can Evolve']))
+
+        filter_type = display_menu()
+
+    print("Back to Pokedex Menu.")
 
 
 ########################
-# 7) Sub-menu & Main menu
+# 5) Pokedex Sub-menu
 ########################
 
 def existing_pokedex(owner):
+    """
+    Enter existing Pokedex of owner
+    """
     choice = pokedex_menu(owner['name'])
+    # Direct to function from menu by input
     while choice != 5:
+        # Add Pokemon
         if choice == 1:
             add_pokemon_to_owner(owner)
+        # Go to display Pokemon menu
         elif choice == 2:
             display_pokemon_list(owner)
+        # Release Pokemon from Pokedex
         elif choice == 3:
             release_pokemon_by_name(owner)
+        # Evolve Pokemon in Pokedex
         elif choice == 4:
             evolve_pokemon_by_name(owner)
+        else: print("Invalid choice.")
         choice = pokedex_menu(owner['name'])
 
-    pass
+    print("Back to Main Menu.")
+
 
 ########################
-# 8) Menu Printing Functions
+# 6) Menu Printing Functions
 ########################
 
 def display_menu():
+    """
+    Print filter options for displaying Pokedex and get input
+    """
     print("\n-- Display Filter Menu --\n\
     1. Only a certain Type\n\
     2. Only Evolvable\n\
@@ -393,6 +455,9 @@ def display_menu():
     return read_int_safe("Your choice: ")
 
 def pokedex_menu(name):
+    """
+    Print menu for owner's Pokedex and get input
+    """
     print("\n-- {0}'s Pokedex Menu --\n\
     1. Add Pokemon\n\
     2. Display Pokedex\n\
@@ -400,18 +465,23 @@ def pokedex_menu(name):
     4. Evolve Pokemon\n\
     5. Back to Main\n\
     ".format(name))
-
     return read_int_safe("Your choice: ")
 
 def print_owners_menu():
+    """
+    Print sorting options for displaying owners and get input
+    """
     print("1) BFS\n\
-2) Pre-Order\n\
-3) In-Order\n\
-4) Post-Order\n\
-")
+    2) Pre-Order\n\
+    3) In-Order\n\
+    4) Post-Order\n\
+    ")
     return read_int_safe("Your choice: ")
 
 def main_menu():
+    """
+    Print main menu and get input
+    """
     print("\n=== Main Menu ===\n\
     1. New Pokedex\n\
     2. Existing Pokedex\n\
@@ -422,22 +492,28 @@ def main_menu():
     ")
     return read_int_safe("Your choice: ")
 
+
 ########################
-# 9) Main Functions
+# 7) Sub Functions
 ########################
 
 def add_pokedex():
-
+    """
+    Add a new owner to the database
+    """
+    # Get owner name
     owner_name = input("Owner name: ")
-
+    # Get first Pokemon
     print("Choose your starter Pokemon:\n\
     1) Treecko\n\
     2) Torchic\n\
     3) Mudkip\n\
     ")
     starter = read_int_safe("Your choice: ")
+    # Create node for first Pokemon
     first_pokemon = HOENN_DATA[starter * 3 - 3]
 
+    # Create owner node and insert to BST
     global ownerRoot
     new_owner = create_owner_node(owner_name, first_pokemon)
     success = insert_owner_bst(new_owner, ownerRoot)
@@ -447,55 +523,79 @@ def add_pokedex():
     else: print("Owner '{0}' already exists. No new Pokedex created.".format(owner_name))
 
 def enter_pokedex():
+    """
+    Go to owner's Pokedex by name
+    """
     global ownerRoot
     name = input("Owner name: ")
 
+    # Find owner in the BST
     owner = find_owner_bst(ownerRoot, name)
     if owner is None:
         print("Owner '{0}' not found.".format(name))
         return
 
+    # Go to Pokedex
     existing_pokedex(owner)
 
 def delete_pokedex():
+    """
+    Delete Owner from database
+    """
     global ownerRoot
 
-    owner_name = input("Enter owner to delete: ")
-    print("Deleting {0}'s entire Pokedex...")
-
+    # Check if there are any owners
     if ownerRoot is None:
         print("No owners to delete.")
         return
-    if not find_owner_bst(ownerRoot, owner_name):
+
+    # Get owner name to delete
+    owner_name = input("Enter owner to delete: ")
+    # Find owner in BST
+    owner = find_owner_bst(ownerRoot, owner_name)
+    if not owner:
         print("Owner '{0}' not found.".format(owner_name))
         return
 
+    # Delete owner from BST
+    print("Deleting {0}'s entire Pokedex...".format(owner['name']))
     ownerRoot = delete_owner_bst(ownerRoot, owner_name)
-    pass
+    print("Pokedex deleted.")
 
 def print_sorted_owners():
+    """
+    Print owners by name and number of Pokemon
+    """
+    # Check if there are any owners
     if ownerRoot is None:
         print("No owners at all.")
         return
 
+    # Create list of all owners
     owners_list = []
     owners_list = gather_all_owners(ownerRoot, owners_list)
 
-    sorted_list = sorted(owners_list, key=lambda owner_node: owner_node['name'])
+    # sort list by name and number of Pokemon
+    sorted_list = sorted(owners_list, key=lambda owner_node: owner_node['name'].lower())
     sorted_list = sorted(sorted_list, key=lambda owner_node: len(owner_node['pokedex']))
 
+    # Print sorted owners
     print("=== The Owners we have, sorted by number of Pokemons ===")
     for owner in sorted_list:
         print("Owner: {0} (has {1} Pokemon)".format(owner['name'], len(owner['pokedex'])))
 
 def print_all_owners():
-    global ownerRoot
+    """
+    Print all owners by selected order
+    """
+    # Check if there are any owners
     if ownerRoot is None:
         print("No owners in the BST.")
         return
-
+    # Print menu and get sorting type
     choice = print_owners_menu()
 
+    # Direct to correct ordering type
     if choice == 1:
         bfs_print(ownerRoot)
     elif choice == 2:
@@ -504,27 +604,39 @@ def print_all_owners():
         in_order_print(ownerRoot)
     elif choice == 4:
         post_order_print(ownerRoot)
-    pass
 
 
+########################
+# MAIN FUNCTION
+########################
 
 def main():
+    """
+    MAIN FUNCTION
+    """
+    # Print main menu and get input
     choice = main_menu()
 
+    # Direct to correct function by input
     while choice != 6:
+        # Add new owner
         if choice == 1:
             add_pokedex()
+        # Go to owner's Pokedex
         elif choice == 2:
             enter_pokedex()
+        # Delete owner from BST
         elif choice == 3:
             delete_pokedex()
+        # Print owners ordered by # of Pokemon
         elif choice == 4:
             print_sorted_owners()
+        # Print all owners by requested order
         elif choice == 5:
             print_all_owners()
+        else: print("Invalid choice.")
         choice = main_menu()
     print("Goodbye!")
-    pass
 
 if __name__ == "__main__":
     main()
